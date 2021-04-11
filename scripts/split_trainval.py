@@ -1,18 +1,16 @@
 '''
-subset of full dataset
-only include moving ego vehicle on clear daytime
-remove sample 26198 in test set because there is no depth in Lidar GT depth
-remove static samples (when there is no movement (decided by ego pose) between previous 2 frames and future 2 frames)
+Split data with moving ego vehicles on a clear day.
+
 '''
 
-from nuscenes.nuscenes import NuScenes
-from os.path import join
+import os
 import numpy as np
 import torch
+import argparse
+
+from nuscenes.nuscenes import NuScenes
 
 np.random.seed(1)
-
-
 
 def is_first_2_sample_in_scene(idx):
         if not nusc.sample[idx]['prev']:
@@ -52,19 +50,25 @@ def stop_in_neighboring_4_samples(sample_idx, thres=0.1):
 
 if __name__ == '__main__':
     
-    dir_data = '/home/longyunf/media/nuscenes'   
-    version = 'v1.0-trainval'
-    
-    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dir_nuscenes', type=str, help='dataset directory')
+    parser.add_argument('--version', type=str, default='v1.0-trainval', help='dataset split')
+        
+    args = parser.parse_args()
+
+    if args.dir_nuscenes = None:
+        this_dir = os.path.dirname(__file__)
+        args.dir_nuscenes = os.path.join(this_dir, '..', 'data', 'nuscenes')
+        
+
     train_ratio = 0.8
     val_ratio = 0.1
     test_ratio = 0.1
                 
-    nusc = NuScenes(version, dataroot = dir_data, verbose=False)
-    n_step = 1   # trainval
-    
-    
-    clear_day_moving_scenes = []     #  moving ego vehicle on a clear day
+    nusc = NuScenes(version=args.version, dataroot = args.nuscenes, verbose=False)
+    n_step = 1
+        
+    clear_day_moving_scenes = []
     
       
     for scene in nusc.scene:
@@ -102,14 +106,10 @@ if __name__ == '__main__':
     val_sample_idx = []
     test_sample_idx = []
     
-    
-   
-    # remove the last 2 sample in each scenes (as it has no next frame) 
-    # remove the first 2 sample in each scenes (as it has too few accumulated radar) 
+      
     for idx, sample in enumerate(nusc.sample):        
         if is_first_2_sample_in_scene(idx) or is_last_2_sample_in_scene(idx) or stop_in_neighboring_4_samples(idx):
-            continue
-        
+            continue        
         if sample['scene_token'] in train_scenes:
             train_sample_idx.append(idx)
         elif sample['scene_token'] in val_scenes:
@@ -128,7 +128,6 @@ if __name__ == '__main__':
         test_sample_idx.remove(26198)
         print('removed 26198')
         
-
     print(len(train_sample_idx), len(val_sample_idx), len(test_sample_idx))
     
     
@@ -140,7 +139,7 @@ if __name__ == '__main__':
                   'test_sample_indices':  test_sample_idx }
 
 
-    torch.save(data_split, join(dir_data, 'data_split_small.tar'))
+    torch.save(data_split, os.path.join(args.dir_nuscenes, '..', 'data_split.tar'))
     
 
     

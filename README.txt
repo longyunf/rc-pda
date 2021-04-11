@@ -1,5 +1,5 @@
 1. Data preparation
-1) split_trainval_small3.py         # split data
+1) split_trainval.py         # split data
 2) prepare_flow_im.py               # extract images for flow computation
 3) compute_flow12.py                # compute image flow from im1 to im2
 4) cal_cam_matrix.py                # compute camera intrinsic matrix and transformation from cam1 to cam2
