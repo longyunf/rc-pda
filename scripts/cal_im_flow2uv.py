@@ -43,7 +43,7 @@ if __name__ == '__main__':
         args.dir_data = os.path.join(this_dir, '..', 'data')
      
         
-    out_dir = join(args.dir_data, 'prepared_data_dense')
+    out_dir = join(args.dir_data, 'prepared_data')
     flow_list = np.array(np.sort(glob.glob(join(out_dir, '*flow.npy'))))
     
     N = len(flow_list)
