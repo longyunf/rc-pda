@@ -20,7 +20,6 @@ def downsample_im(im, downsample_scale, y_cutoff):
     h_im = int( h_im / downsample_scale )
     w_im = int( w_im / downsample_scale ) 
     
-    # In resize function align_corners = false
     im = resize(im, (h_im,w_im,3), order=1, preserve_range=True, anti_aliasing=False) 
     im = im.astype('uint8')
     im = im[y_cutoff:,...]
@@ -45,8 +44,7 @@ if __name__ == '__main__':
     
        
     nusc = NuScenes(args.version, dataroot = dir_nuscenes, verbose=False)
-    
-    
+       
     dir_data_out = join(args.dir_data, 'prepared_data')
     if not os.path.exists(dir_data_out):
         os.makedirs(dir_data_out)
