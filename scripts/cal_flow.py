@@ -1,7 +1,6 @@
 '''
-This is based on RAFT (code and models are available from https://github.com/princeton-vl/RAFT)
-
-compute flow from im1 to im2
+Compute flow
+Based on RAFT (https://github.com/princeton-vl/RAFT)
 
 '''
 
