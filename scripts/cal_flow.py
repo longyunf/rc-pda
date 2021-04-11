@@ -5,22 +5,20 @@ compute flow from im1 to im2
 
 '''
 
-
-import _init_paths
-
-# import sys
-# sys.path.append('/home/longyunf/Repos/RAFT/core')
-
-import argparse
 import os
+import sys
+import argparse
 import glob
 import numpy as np
-import torch
-from PIL import Image
 from os.path import join
 
-from external.RAFT.core.raft import RAFT
-# from raft import RAFT
+import torch
+from PIL import Image
+
+raft_path = join(os.path.dirname(__file__), '..', 'external', 'RAFT', 'core')
+if raft_path not in sys.path:
+    sys.path.insert(0, raft_path)
+from raft import RAFT
 
 DEVICE = 'cuda'
 
@@ -34,8 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('--dir_data', type=str, help='dataset directory')
     parser.add_argument('--start_idx', type=int)
     parser.add_argument('--end_idx', type=int)
-    
-    
+        
     args = parser.parse_args()
     
     if args.dir_data == None:
@@ -46,11 +43,9 @@ if __name__ == '__main__':
         this_dir = os.path.dirname(__file__)
         args.model = join(this_dir, '..', 'external', 'RAFT', 'models', 'raft-kitti.pth')
     
- 
     start_idx = args.start_idx
     end_idx = args.end_idx
-    
-    
+        
     out_dir = join(args.dir_data, 'prepared_data')
        
     model = torch.nn.DataParallel(RAFT(args))
@@ -59,8 +54,7 @@ if __name__ == '__main__':
     model = model.module
     model.to(DEVICE)
     model.eval()
-    
-    
+        
     im_list = np.array(np.sort(glob.glob(join(out_dir, '*im.jpg'))))
     
     N = len(im_list)
