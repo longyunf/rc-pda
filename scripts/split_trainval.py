@@ -56,7 +56,7 @@ if __name__ == '__main__':
         
     args = parser.parse_args()
 
-    if args.dir_nuscenes = None:
+    if args.dir_nuscenes == None:
         this_dir = os.path.dirname(__file__)
         args.dir_nuscenes = os.path.join(this_dir, '..', 'data', 'nuscenes')
         
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     val_ratio = 0.1
     test_ratio = 0.1
                 
-    nusc = NuScenes(version=args.version, dataroot = args.nuscenes, verbose=False)
+    nusc = NuScenes(version=args.version, dataroot = args.dir_nuscenes, verbose=False)
     n_step = 1
         
     clear_day_moving_scenes = []
