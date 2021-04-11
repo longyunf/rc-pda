@@ -16,10 +16,10 @@ python semantic_seg.py   TEST.MODEL_FILE  ~/Dataset/pre-trained_models/panoptic_
 
 
 import sys
-dir_panoptic_deeplab = '/home/longyunf/Repos/panoptic-deeplab'
+# dir_panoptic_deeplab = '/home/longyunf/Repos/panoptic-deeplab'
 dir_panoptic_deeplab_tools = '/home/longyunf/Repos/panoptic-deeplab/tools'
 
-sys.path.append(dir_panoptic_deeplab)
+# sys.path.append(dir_panoptic_deeplab)
 sys.path.append(dir_panoptic_deeplab_tools)
 
 import matplotlib.pyplot as plt
