@@ -3,11 +3,8 @@ import os
 import glob
 import numpy as np
 import torch
-
 from os.path import join
 from skimage.transform import resize
-
-
 
 def flow2uv(flow, K, downsample_scale=4, y_cutoff=33):
     '''
@@ -36,16 +33,17 @@ def flow2uv(flow, K, downsample_scale=4, y_cutoff=33):
 
    
 
-if __name__ == '__main__':
+if __name__ == '__main__':    
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_data', type=str, default='d:/Lab/Dataset/nuscenes', help='dataset directory')
+    parser.add_argument('--dir_data', type=str)   
+    args = parser.parse_args()
 
-    args = parser.parse_args()    
-    dir_data = args.dir_data
+    if args.dir_data == None:
+        this_dir = os.path.dirname(__file__)
+        args.dir_data = os.path.join(this_dir, '..', 'data')
+     
         
-    out_dir = join(dir_data, 'prepared_data_dense')
-    
-    
+    out_dir = join(args.dir_data, 'prepared_data_dense')
     flow_list = np.array(np.sort(glob.glob(join(out_dir, '*flow.npy'))))
     
     N = len(flow_list)
@@ -61,12 +59,9 @@ if __name__ == '__main__':
         K = matrix['K']
         
         uv_map = flow2uv(flow, K, downsample_scale, y_cutoff)
-
+        
         np.save(f_flow[:-8] + 'im_uv.npy', uv_map)
         
         ct += 1
         print('Processing %d/%d' % ( ct, N ) )
         
-
-    
-    
