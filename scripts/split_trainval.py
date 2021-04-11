@@ -51,21 +51,22 @@ def stop_in_neighboring_4_samples(sample_idx, thres=0.1):
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_nuscenes', type=str, help='dataset directory')
-    parser.add_argument('--version', type=str, default='v1.0-trainval', help='dataset split')
+    parser.add_argument('--dir_data', type=str)
+    parser.add_argument('--version', type=str, default='v1.0-trainval')
         
     args = parser.parse_args()
 
-    if args.dir_nuscenes == None:
+    if args.dir_data == None:
         this_dir = os.path.dirname(__file__)
-        args.dir_nuscenes = os.path.join(this_dir, '..', 'data', 'nuscenes')
-        
+        args.dir_data = os.path.join(this_dir, '..', 'data')
+    dir_nuscenes = os.path.join(args.dir_data, 'nuscenes')
+
 
     train_ratio = 0.8
     val_ratio = 0.1
     test_ratio = 0.1
                 
-    nusc = NuScenes(version=args.version, dataroot = args.dir_nuscenes, verbose=False)
+    nusc = NuScenes(version=args.version, dataroot = dir_nuscenes, verbose=False)
     n_step = 1
         
     clear_day_moving_scenes = []
@@ -120,13 +121,10 @@ if __name__ == '__main__':
     
     if 26198 in train_sample_idx:
         train_sample_idx.remove(26198)
-        print('remove 26198')
     elif 26198 in val_sample_idx:
         val_sample_idx.remove(26198)
-        print('remove 26198')
     elif 26198 in test_sample_idx:
         test_sample_idx.remove(26198)
-        print('removed 26198')
         
     print(len(train_sample_idx), len(val_sample_idx), len(test_sample_idx))
     
@@ -139,7 +137,7 @@ if __name__ == '__main__':
                   'test_sample_indices':  test_sample_idx }
 
 
-    torch.save(data_split, os.path.join(args.dir_nuscenes, '..', 'data_split.tar'))
+    torch.save(data_split, os.path.join(args.dir_data, 'data_split.tar'))
     
 
     

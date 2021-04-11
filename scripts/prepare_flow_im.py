@@ -1,10 +1,8 @@
 '''
-two camera images are 2nd ad 3rd images after the image corresponding to key Lidar frame
+Extract images
 
 '''
 
-
-from nuscenes.nuscenes import NuScenes
 import skimage.io as io
 import os
 from os.path import join
@@ -13,6 +11,8 @@ import argparse
 from skimage.transform import resize
 import torch
 import numpy as np
+
+from nuscenes.nuscenes import NuScenes
 
 
 def downsample_im(im, downsample_scale, y_cutoff):
@@ -28,23 +28,26 @@ def downsample_im(im, downsample_scale, y_cutoff):
     
 
 if __name__ == '__main__':
-    
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_data', type=str, default='d:/Lab/Dataset/nuscenes', help='dataset directory')
-    parser.add_argument('--version', type=str, default='v1.0-mini', help='dataset split')
+    parser.add_argument('--dir_data', type=str)
+    parser.add_argument('--version', type=str, default='v1.0-trainval')
+        
+    args = parser.parse_args()
+
+    if args.dir_data == None:
+        this_dir = os.path.dirname(__file__)
+        args.dir_data = os.path.join(this_dir, '..', 'data')
+    dir_nuscenes = os.path.join(args.dir_data, 'nuscenes')
     
-    args = parser.parse_args()    
-    dir_data = args.dir_data    
-    version = args.version
     
     downsample_scale = 4
     y_cutoff = 33
     
-    process_full_data = False
        
-    nusc = NuScenes(version, dataroot = dir_data, verbose=False)
-        
-    dir_data_out = join(dir_data, 'prepared_data_dense')
+    nusc = NuScenes(args.version, dataroot = dir_nuscenes, verbose=False)
+    
+    
+    dir_data_out = join(args.dir_data, 'prepared_data')
     if not os.path.exists(dir_data_out):
         os.makedirs(dir_data_out)
     
@@ -55,10 +58,7 @@ if __name__ == '__main__':
     print('removed %d old files in output folder' % len(f_list))
     
     
-    if process_full_data:
-        sample_indices = np.arange(len(nusc.sample))
-    else:
-        sample_indices = torch.load(join(dir_data,'data_split_small.tar'))['all_indices'] 
+    sample_indices = torch.load(join(args.dir_data,'data_split.tar'))['all_indices'] 
          
     ct = 0         
     for sample_idx in sample_indices:
