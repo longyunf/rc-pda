@@ -1,7 +1,7 @@
 1. Data preparation
 1) split_trainval.py         # split data
 2) prepare_flow_im.py               # extract images for flow computation
-3) compute_flow12.py                # compute image flow from im1 to im2
+3) cal_flow.py                # compute image flow from im1 to im2
 4) cal_cam_matrix.py                # compute camera intrinsic matrix and transformation from cam1 to cam2
 5) cal_im_flow2uv.py                # transform image flow to normalized expression (u2,v2)
 6) semantic_seg.py                  # compute vehicle semantic segmentation
