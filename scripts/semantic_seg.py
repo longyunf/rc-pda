@@ -17,7 +17,6 @@ if deeplab_path not in sys.path:
 from functools import reduce
 import argparse
 import glob
-import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageOps
 
@@ -168,23 +167,6 @@ def main():
             np.save(path_seg, vehicle_seg)            
             print('compute segmentation %d/%d' % ( i, N ) )
             
-            
-            
-            plt.figure()
-            plt.imshow(raw_image)
-            plt.show()
-            
-            plt.figure()
-            plt.imshow(semantic_pred)
-            plt.show()
-            
-            plt.figure()
-            plt.imshow(vehicle_seg)
-            plt.show()
-            
-            break
-                
-
 
 
 if __name__ == '__main__':
