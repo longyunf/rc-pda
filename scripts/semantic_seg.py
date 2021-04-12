@@ -1,11 +1,3 @@
-# ------------------------------------------------------------------------------
-# Demo code.
-# Example command:
-# python tools/demo.py --cfg PATH_TO_CONFIG_FILE \
-#   --input-files PATH_TO_INPUT_FILES \
-#   --output-dir PATH_TO_OUTPUT_DIR
-# Written by Bowen Cheng (bcheng9@illinois.edu)
-# ------------------------------------------------------------------------------
 '''
 This is based on Panoptic-DeepLab (code and models are available from https://github.com/bowenc0221/panoptic-deeplab)
 
@@ -23,37 +15,21 @@ deeplab_path = join(os.path.dirname(__file__), '..', 'external', 'panoptic-deepl
 if deeplab_path not in sys.path:
     sys.path.insert(0, deeplab_path)
 
-from os.path import join
 from functools import reduce
-
 import argparse
-# import cv2
-import os
-# import pprint
-# import logging
-# import time
 import glob
 import matplotlib.pyplot as plt
-
 import numpy as np
 from PIL import Image, ImageOps
+
 import torch
-# import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 
 import _init_paths
-# from fvcore.common.file_io import PathManager
 from segmentation.config import config, update_config
-# from segmentation.utils.logger import setup_logger
 from segmentation.model import build_segmentation_model_from_cfg
-# from segmentation.utils import save_debug_images
 from segmentation.model.post_processing import get_semantic_segmentation
-
-# from segmentation.model.post_processing import get_semantic_segmentation, get_panoptic_segmentation
-# from segmentation.utils import save_annotation, save_instance_annotation, save_panoptic_annotation
 import segmentation.data.transforms.transforms as T
-# from segmentation.utils import AverageMeter
-# from segmentation.data import build_test_loader_from_cfg
 
 
 def parse_args():
@@ -62,16 +38,16 @@ def parse_args():
     parser.add_argument('--cfg',
                         help='experiment configure file name',
                         type=str)
-    parser.add_argument('--input-files',
-                        help='input files, could be image, image list or video',
-                        type=str)
-    parser.add_argument('--extension',
-                        help='file extension if input is image list',
-                        default='.png',
-                        type=str)
-    parser.add_argument('--merge-image',
-                        help='merge image with predictions',
-                        action='store_true')
+    # parser.add_argument('--input-files',
+    #                     help='input files, could be image, image list or video',
+    #                     type=str)
+    # parser.add_argument('--extension',
+    #                     help='file extension if input is image list',
+    #                     default='.png',
+    #                     type=str)
+    # parser.add_argument('--merge-image',
+    #                     help='merge image with predictions',
+    #                     action='store_true')
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
                         default=None,
@@ -117,40 +93,6 @@ def read_image(file_name, format=None):
     return image
 
 
-class CityscapesMeta(object):
-    def __init__(self):
-        self.thing_list = [11, 12, 13, 14, 15, 16, 17, 18]
-        self.label_divisor = 1000
-        self.ignore_label = 255
-
-    @staticmethod
-    def create_label_colormap():
-        """Creates a label colormap used in CITYSCAPES segmentation benchmark.
-        Returns:
-            A colormap for visualizing segmentation results.
-        """
-        colormap = np.zeros((256, 3), dtype=np.uint8)
-        colormap[0] = [128, 64, 128]
-        colormap[1] = [244, 35, 232]
-        colormap[2] = [70, 70, 70]
-        colormap[3] = [102, 102, 156]
-        colormap[4] = [190, 153, 153]
-        colormap[5] = [153, 153, 153]
-        colormap[6] = [250, 170, 30]
-        colormap[7] = [220, 220, 0]
-        colormap[8] = [107, 142, 35]
-        colormap[9] = [152, 251, 152]
-        colormap[10] = [70, 130, 180]
-        colormap[11] = [220, 20, 60]
-        colormap[12] = [255, 0, 0]
-        colormap[13] = [0, 0, 142]
-        colormap[14] = [0, 0, 70]
-        colormap[15] = [0, 60, 100]
-        colormap[16] = [0, 80, 100]
-        colormap[17] = [0, 0, 230]
-        colormap[18] = [119, 11, 32]
-        return colormap
-
 
 def main():
     args = parse_args()
@@ -169,7 +111,6 @@ def main():
     model = model.to(device)
     model_state_file = config.TEST.MODEL_FILE
 
-
     if os.path.isfile(model_state_file):
         model_weights = torch.load(model_state_file)
         if 'state_dict' in model_weights.keys():
@@ -180,9 +121,7 @@ def main():
             raise ValueError('Cannot find test model.')
     
     
-    dir_data = args.dir_data
-    out_dir = join(dir_data, 'prepared_data')
-    
+    out_dir = join(args.dir_data, 'prepared_data')    
     input_list = np.array(np.sort(glob.glob(join(out_dir, '*im.jpg'))))
     
 
@@ -229,17 +168,15 @@ def main():
 
             # post-processing
             semantic_pred = get_semantic_segmentation(out_dict['semantic'])
-            
-            
+                        
             semantic_pred = semantic_pred.squeeze(0).cpu().numpy()
             # crop predictions
             semantic_pred = semantic_pred[:raw_h, :raw_w]            
             # car 13, truck 14, bus 15
             vehicle_seg = reduce(np.logical_or, [semantic_pred==13, semantic_pred==14, semantic_pred==15])                            
-            seg = vehicle_seg
                            
             path_seg = fname[:-6] + 'seg.npy' 
-            np.save(path_seg, seg)            
+            np.save(path_seg, vehicle_seg)            
             print('compute segmentation %d/%d' % ( i, N ) )
             
             
