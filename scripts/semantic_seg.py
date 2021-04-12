@@ -79,14 +79,15 @@ def parse_args():
     parser.add_argument('--dir_data', type=str)
 
     args = parser.parse_args()
-    update_config(config, args)
-    
+        
     this_dir =  os.path.dirname(__file__)
     if args.cfg == None:
         args.cfg = join(this_dir, '..', 'external', 'panoptic-deeplab', 'configs', 'panoptic_deeplab_R101_os32_cityscapes.yaml')
         
     if args.dir_data == None:
         args.dir_data = os.path.join(this_dir, '..', 'data')
+        
+    update_config(config, args)
     
     return args
 
