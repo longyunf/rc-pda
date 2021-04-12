@@ -6,7 +6,7 @@ def add_path(path):
         sys.path.insert(0, path)
 
 this_dir = os.path.dirname(__file__)
-lib_dir = join(this_dir, '..', 'lib')
+lib_dir = os.path.join(this_dir, '..', 'lib')
 
 # Add library path to PYTHONPATH
 add_path(lib_dir)
