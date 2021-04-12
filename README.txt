@@ -4,10 +4,11 @@
 3) cal_flow.py                # compute image flow from im1 to im2
 4) cal_cam_matrix.py                # compute camera intrinsic matrix and transformation from cam1 to cam2
 5) cal_im_flow2uv.py                # transform image flow to normalized expression (u2,v2)
+6) semantic_seg.py                  # compute vehicle semantic segmentation
 
 
 ## stops here
-6) semantic_seg.py                  # compute vehicle semantic segmentation
+
 7) cal_dense_gt3.py                 # compute dense ground truth (depth1, u2, v2) and low height mask
 8) cal_single_gt.py                 # compute single frame gt (depth, u2, v2)
 9) cal_short_radar.py               # compute merged radar (5 frames)
