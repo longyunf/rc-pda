@@ -1,11 +1,10 @@
 '''
-This is based on Panoptic-DeepLab (code and models are available from https://github.com/bowenc0221/panoptic-deeplab)
+Run command:
+python semantic_seg.py  TEST.MODEL_FILE  path/to/panoptic_deeplab_R101_os32_cityscapes.pth
 
-run command:
-python semantic_seg.py   TEST.MODEL_FILE  ~/Dataset/pre-trained_models/panoptic_deeplab_R101_os32_cityscapes.pth
+Based on Panoptic-DeepLab (https://github.com/bowenc0221/panoptic-deeplab)
 
 '''
-
 
 import sys
 import os
@@ -38,16 +37,6 @@ def parse_args():
     parser.add_argument('--cfg',
                         help='experiment configure file name',
                         type=str)
-    # parser.add_argument('--input-files',
-    #                     help='input files, could be image, image list or video',
-    #                     type=str)
-    # parser.add_argument('--extension',
-    #                     help='file extension if input is image list',
-    #                     default='.png',
-    #                     type=str)
-    # parser.add_argument('--merge-image',
-    #                     help='merge image with predictions',
-    #                     action='store_true')
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
                         default=None,
