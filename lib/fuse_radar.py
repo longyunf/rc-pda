@@ -1,4 +1,3 @@
-from nuscenes.nuscenes import NuScenes
 from nuscenes.utils.data_classes import RadarPointCloud
 from nuscenes.utils.geometry_utils import view_points, transform_matrix
 
@@ -10,7 +9,6 @@ from os.path import join
 import os.path as osp
 import matplotlib.pyplot as plt
 import numpy as np
-import argparse
 from skimage.transform import resize
 
 

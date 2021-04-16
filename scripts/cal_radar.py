@@ -2,8 +2,8 @@
    Generate radar inputs.
 '''
 
+import os
 from os.path import join
-import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 from timeit import default_timer as timer
@@ -26,15 +26,15 @@ if __name__ == '__main__':
     
     if args.dir_data == None:
         this_dir = os.path.dirname(__file__)
-        args.dir_data = os.path.join(this_dir, '..', 'data')
-    dir_nuscenes = os.path.join(args.dir_data, 'nuscenes')
+        args.dir_data = join(this_dir, '..', 'data')
+    dir_nuscenes = join(args.dir_data, 'nuscenes')
     start_idx = args.start_idx
     end_idx = args.end_idx
         
     downsample_scale = 4
     y_cutoff = 33
    
-    nusc = NuScenes(args.version, dataroot = args.dir_nuscenes, verbose=False)
+    nusc = NuScenes(args.version, dataroot = dir_nuscenes, verbose=False)
     dir_data_out = join(args.dir_data, 'prepared_data')   
         
     sample_indices = torch.load(join(args.dir_data,'data_split.tar'))['all_indices']
