@@ -1,4 +1,5 @@
 import argparse
+import os
 from os.path import join
 import numpy as np
 import h5py
