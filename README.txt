@@ -10,9 +10,7 @@
 
 ## stops here
 
-
-8) cal_single_gt.py                 # compute single frame gt (depth, u2, v2)
-9) cal_short_radar.py               # compute merged radar (5 frames)
+9) cal_radar.py               # compute merged radar (5 frames)
 10) cal_single_radar.py             # single frame radar
 11) gen_h5_file3.py                 # create .h5 dataset file
 

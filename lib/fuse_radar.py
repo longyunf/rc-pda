@@ -1,13 +1,3 @@
-'''
-estimate points position of radar at the time of two images with ego motion
-and Doppler effect
-
-Lidar flow: im1 -> im2
-depth: depth for im1
-radar flow (keep as float number)
-
-'''
-
 from nuscenes.nuscenes import NuScenes
 from nuscenes.utils.data_classes import RadarPointCloud
 from nuscenes.utils.geometry_utils import view_points, transform_matrix
@@ -24,47 +14,41 @@ import argparse
 from skimage.transform import resize
 
 
-# merge select range of previous radar frames to the key frame
 def merge_selected_radar(nusc, sample_idx, frame_range=[0,12]):
     '''
-    frame_range: [a,b]; total (b-a+1) frames; 0 means current frame
+    frame_range: [a,b]; (b-a+1) frames; 0 represents current frame
     
     '''
     
     def cal_matrix_refCam_from_global(cam_data):
         ref_pose_rec = nusc.get('ego_pose', cam_data['ego_pose_token'])
         ref_cs_rec = nusc.get('calibrated_sensor', cam_data['calibrated_sensor_token'])    
-        # Homogeneous transform from ego car frame to reference frame.
         ref_from_car = transform_matrix(ref_cs_rec['translation'], Quaternion(ref_cs_rec['rotation']), inverse=True)    
-        # Homogeneous transformation matrix from global to current ego car frame.
         car_from_global = transform_matrix(ref_pose_rec['translation'], Quaternion(ref_pose_rec['rotation']), inverse=True)        
         M_ref_from_global = reduce(np.dot, [ref_from_car, car_from_global])
         
         return M_ref_from_global
     
     def current_2_ref(current_sd_rec, M_refCam_from_global, ref_time, min_distance=1):        
-        # Load up the pointcloud and remove points close to the sensor.
         current_pc = pc.from_file(osp.join(nusc.dataroot, current_sd_rec['filename']))
         current_pc.remove_close(min_distance)
 
-        # Get past pose.
         current_pose_rec = nusc.get('ego_pose', current_sd_rec['ego_pose_token'])
         global_from_car = transform_matrix(current_pose_rec['translation'],
                                            Quaternion(current_pose_rec['rotation']), inverse=False)
 
-        # Homogeneous transformation matrix from sensor coordinate frame to ego car frame.
         current_cs_rec = nusc.get('calibrated_sensor', current_sd_rec['calibrated_sensor_token'])
         car_from_current = transform_matrix(current_cs_rec['translation'], Quaternion(current_cs_rec['rotation']),
                                             inverse=False)
 
-        # Fuse transformation matrices into one and perform transform.
         trans_matrix = reduce(np.dot, [M_refCam_from_global, global_from_car, car_from_current])
         
-        time_lag = ref_time - 1e-6 * current_sd_rec['timestamp']  # Positive or small negative difference.
+        time_lag = ref_time - 1e-6 * current_sd_rec['timestamp']  
         
         vx_comp, vy_comp = current_pc.points[8], current_pc.points[9]
-                
-        current_pc.points[0] += vx_comp * time_lag      # Use Doppler effect to compensate object motion
+        
+        # Use Doppler velocity to compensate object motion        
+        current_pc.points[0] += vx_comp * time_lag
         current_pc.points[1] += vy_comp * time_lag
         
         current_pc.transform(trans_matrix)
@@ -143,19 +127,16 @@ def merge_selected_radar(nusc, sample_idx, frame_range=[0,12]):
                 
         current_pc1, time_lag1 = current_2_ref(current_sd_rec, M_refCam1_from_global, ref_time1)
         current_pc2, time_lag2 = current_2_ref(current_sd_rec, M_refCam2_from_global, ref_time2)
-        
-        # Add time vector which can be used as a temporal feature.        
+              
         times1 = time_lag1 * np.ones((current_pc1.nbr_points(),))
         times2 = time_lag2 * np.ones((current_pc2.nbr_points(),))
 
         all_times1 = np.hstack((all_times1, times1))
         all_times2 = np.hstack((all_times2, times2))
 
-        # Merge with key pc.
         all_pc1.points = np.hstack((all_pc1.points, current_pc1.points))
         all_pc2.points = np.hstack((all_pc2.points, current_pc2.points))
 
-        # Abort if there are no previous sweeps.
         if current_sd_rec['prev'] == '':
             break
         else:
@@ -165,7 +146,7 @@ def merge_selected_radar(nusc, sample_idx, frame_range=[0,12]):
     x1, y1, depth1, rcs1, v_comp1, msk1 = proj2im(all_pc1, cam_data1) 
     x2, y2, depth2, rcs2, v_comp2, msk2 = proj2im(all_pc2, cam_data2)
         
-    rcs = rcs2              # rcs1 = rcs2 
+    rcs = rcs2
     v_comp = v_comp2       
     msk = msk1 * msk2
         
@@ -186,8 +167,7 @@ def cal_depthMap_flow(x1, y1, depth1, all_times1, x2, y2, depth2, all_times2, rc
     v_comp_map1 = np.zeros( (h_new, w_new) , dtype=float)
         
     flow = np.zeros( (h_new, w_new, 2) , dtype=float)      # dx, dy
-    
-    # pixel square model   
+     
     x1 = (x1 + 0.5) / downsample_scale - 0.5
     y1 = (y1 + 0.5) / downsample_scale - 0.5
     x2 = (x2 + 0.5) / downsample_scale - 0.5
@@ -203,12 +183,10 @@ def cal_depthMap_flow(x1, y1, depth1, all_times1, x2, y2, depth2, all_times2, rc
     
     for i in range(len(x1)):
         x1_one, y1_one = int(round( x1[i] )), int(round( y1[i] ))
-        # x2_one, y2_one = int(round( x2[i] )), int(round( y2[i] ))
                 
         if depth_map1[y1_one,x1_one] == 0:
             depth_map1[y1_one,x1_one] = depth1[i]        
             flow[y1_one,x1_one, ...] = [x2[i] - x1[i], y2[i] - y1[i]] 
-            # flow[y1_one, x1_one, ...] = [x2_one - x1_one, y2_one - y1_one]
             time_map1[y1_one,x1_one] = all_times1[i]
             rcs_map1[y1_one,x1_one] = rcs[i]
             v_comp_map1[y1_one,x1_one] = v_comp[i]
@@ -216,7 +194,6 @@ def cal_depthMap_flow(x1, y1, depth1, all_times1, x2, y2, depth2, all_times2, rc
         elif depth_map1[y1_one,x1_one] > depth1[i]: 
             depth_map1[y1_one,x1_one] = depth1[i]
             flow[y1_one,x1_one, ...] = [x2[i] - x1[i], y2[i] - y1[i]] 
-            # flow[y1_one, x1_one, ...] = [x2_one - x1_one, y2_one - y1_one]
             time_map1[y1_one,x1_one] = all_times1[i]
             rcs_map1[y1_one,x1_one] = rcs[i]
             v_comp_map1[y1_one,x1_one] = v_comp[i]
@@ -328,88 +305,6 @@ def radarFlow2uv(flow, K, depth_map, downsample_scale=4, y_cutoff=33):
     return uv_map
 
 
-
-
-if __name__ == '__main__':
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_data', type=str, default='d:/Lab/Dataset/nuscenes', help='dataset directory')
-    parser.add_argument('--version', type=str, default='v1.0-mini', help='dataset split')
-    
-    args = parser.parse_args()    
-    dir_data = args.dir_data    
-    version = args.version
-   
-    nusc = NuScenes(version, dataroot = dir_data, verbose=False)
-    
-    frame_range=[0,4]
-    
-    sample_idx = 157    
-    
-    
-    x1, y1, depth1, all_times1, x2, y2, depth2, all_times2, rcs, v_comp= merge_selected_radar(nusc, sample_idx, frame_range)
-    
-    depth_map1, flow, time_map1, rcs_map1, v_comp_map1 = cal_depthMap_flow(x1, y1, depth1, all_times1, x2, y2, depth2, all_times2, rcs, v_comp, downsample_scale=4, y_cutoff=33)
-    
-    im1, _ = load_im(nusc, sample_idx)
-    im1 = downsample_im(im1, downsample_scale=4, y_cutoff=33)
-    # im2 = downsample_im(im2, downsample_scale=4, y_cutoff=33)
-
-    
-    plt.close('all')
-    
-    
-    
-    plt.figure()
-    plt.imshow(depth_map1, cmap = 'jet')
-    plt.title('d1')
-    plt.show()
-    
-    plt_depth_on_im(depth_map1, im1)   
-    plt_flow_on_im(flow, im1, skip = 0 )
-    
-    
-    plt_depth_on_im(time_map1, im1)    
-    plt_depth_on_im(rcs_map1, im1)
-    plt_depth_on_im(v_comp_map1, im1)
-    
-    print(np.sum(depth_map1>0))
-    
-       
-    # out_dir = join(dir_data, 'prepared_data_dense')
-    
-    # im_flow = np.load(join(out_dir, '%05d_flow.npy' % sample_idx))
-    # plt_flow_on_im(im_flow, im1, skip=3)
-    
-    
-    # error = flow_l2_error(flow, im_flow)
-    
-    
-    # thres = 1.5
-    
-    # plt_depth_on_im(error>thres, im1)
-    
-    # msk_occ = error > thres
-    # depth_map1[msk_occ] = 0
-    # plt_depth_on_im(depth_map1, im1)
-    # plt.title('filtered d2')
-    
-    
-    # out_dir = join(dir_data, 'prepared_data_dense')
-    # matrix = np.load(join(out_dir, '%05d_matrix.npz' % sample_idx))
-    # K = matrix['K']
-    # uv2 = radarFlow2uv(flow, K, depth_map1, downsample_scale=4, y_cutoff=33)
-        
-    # depth_map = np.stack([depth_map1, time_map1, rcs_map1, v_comp_map1], axis = 2)
-               
-    # radar_data = np.concatenate((depth_map, uv2), axis=2)   
-    
-    
-    
-    
-    
-    
-    
     
     
     
