@@ -5,14 +5,9 @@
 4) cal_cam_matrix.py                # compute camera intrinsic matrix and transformation from cam1 to cam2
 5) cal_im_flow2uv.py                # transform image flow to normalized expression (u2,v2)
 6) semantic_seg.py                  # compute vehicle semantic segmentation
-
 7) cal_gt.py                 # compute dense ground truth (depth1, u2, v2) and low height mask
-
-## stops here
-
-9) cal_radar.py               # compute merged radar (5 frames)
-10) cal_single_radar.py             # single frame radar
-11) gen_h5_file3.py                 # create .h5 dataset file
+8) cal_radar.py               # compute merged radar (5 frames)
+9) gen_h5_file3.py                 # create .h5 dataset file
 
 2. Estimate radar camera assoication
 train_aff.py         # train
