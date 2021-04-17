@@ -1,9 +1,3 @@
-'''
-input: im1, d_radar (unfiltered), u1, v1, du_im, dv_im, du_radar, dv_radar
-output: affinity map
-label: d_lidar
-'''
-
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -265,7 +259,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='training parameters')    
     parser.add_argument('--dir_data', type=str)
-    parser.add_argument('--dir_result', type=str, help='directory for training results')
+    parser.add_argument('--dir_result', type=str)
     
     parser.add_argument('--seed', type=int, default=1)
     parser.add_argument('--epochs', type=int, default=40)
