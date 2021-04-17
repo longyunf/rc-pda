@@ -196,7 +196,7 @@ def main(args):
     args.dir_summary = join(args.dir_result, 'summary') 
     mkdir(args.dir_summary)     
       
-    args.path_data_file = join(args.dir_data, 'prepared_data_dense.h5') 
+    args.path_data_file = join(args.dir_data, 'prepared_data.h5') 
     save_arguments(args)    
         
     
