@@ -4,6 +4,7 @@ import numpy as np
 from os.path import join
 import matplotlib.pyplot as plt
 import h5py
+import os
 
       
 def cal_uv1(h, w, K, downsample_scale=4, y_cutoff=33):
