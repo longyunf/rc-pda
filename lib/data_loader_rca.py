@@ -90,7 +90,7 @@ class Dataset(data.Dataset):
         self.K_list = data['K']
         self.T_list = data['T']
         self.uv2_im_list = data['im_uv'][...].astype('f4')
-        self.radar_list = data['radar_short'][...].astype('f4')
+        self.radar_list = data['radar'][...].astype('f4')
         self.gt = data['gt'][...,[0]].astype('f4')
         self.indices = data['indices']
         if mode == 'test':
@@ -125,15 +125,12 @@ class Dataset(data.Dataset):
         msk_radar = d_radar[0] > 0              # h x w
         d_radar_norm = d_radar/50               # normalized to 0-1
         
-        
-        
         scale_factor = 30
         
         ## remove rotational flow
         uvt2_im = cal_uv_translation(uv2_im, R)
         uvt2_radar = cal_uv_translation(uv2_radar, R, msk_radar)
         
-
         duv_im = (uvt2_im - uv1_map) * scale_factor                    # optical flow
         duv_radar = (uvt2_radar - uv1_map) * msk_radar * scale_factor  # radar flow
         
@@ -150,9 +147,9 @@ class Dataset(data.Dataset):
 
 if __name__=='__main__':
     
-    
-    dir_data= 'd:/Lab/Dataset/nuscenes'   
-    path_data_file = join(dir_data, 'prepared_data_dense.h5')
+    this_dir = os.path.dirname(__file__)
+    dir_data = join(this_dir, '..', 'data')  
+    path_data_file = join(dir_data, 'prepared_data.h5')
     args_train_set = {'path_data_file': path_data_file,
                       'mode': 'train'}
     args_train_loader = {'batch_size': 6,
@@ -169,9 +166,8 @@ if __name__=='__main__':
     print('batch_idx', batch_idx)
     print('data_in', sample['data_in'].shape, type(sample['data_in']),sample['data_in'].dtype)
     print('d_lidar', sample['d_lidar'].shape, type(sample['d_lidar']), sample['d_lidar'].dtype)
+    print('d_lidar', sample['d_radar'].shape, type(sample['d_radar']), sample['d_radar'].dtype)
 
     
 
     
-    
-

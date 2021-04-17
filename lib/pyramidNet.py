@@ -1,12 +1,11 @@
 '''
 Pyramid network 
-Daniel Morris 
+
 '''
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# from .preresnet import BasicBlock, Block
 
 
 __all__ = ['PyramidCNN', 'pnet']

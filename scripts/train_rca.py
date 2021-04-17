@@ -4,8 +4,7 @@ output: affinity map
 label: d_lidar
 '''
 
-import torch
-import torch.backends.cudnn as cudnn
+
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
@@ -15,12 +14,15 @@ from timeit import default_timer as timer
 import copy
 from tqdm import tqdm
 from sklearn.metrics import average_precision_score
+
+import torch
+import torch.backends.cudnn as cudnn
 from torch.utils.tensorboard import SummaryWriter
 
-from data_loader_aff import init_data_loader
+import _init_paths
+from data_loader_rca import init_data_loader
 from pyramidNet import PyramidCNN
-
-from aff_utils import depth_to_connect, neighbor_connection
+from rca_utils import depth_to_connect, neighbor_connection
 
 
 
@@ -30,16 +32,14 @@ def BCE_loss(aff_prd, lb_aff):
     n_pixel = torch.sum(lb_aff>=0).float()    
     n_connect = torch.sum( lb_aff==1 ).float()
        
-    w_0 = n_connect / n_pixel                    # weight for non-connectness
+    w_0 = n_connect / n_pixel
     w_1 = 1 - w_0
     
     weight = aff_msk * ( w_1 * lb_aff + w_0 * ( 1 - lb_aff ) )
           
     criterion = torch.nn.BCEWithLogitsLoss(weight = weight, reduction = 'mean')
     loss_aff = criterion(aff_prd, lb_aff)
- 
-    # loss_aff = torch.sum( weight * ( -lb_aff * torch.log(aff_prd) - (1 - lb_aff) * torch.log(1 - aff_prd) ) ) / torch.sum( weight > 0 ) 
-        
+    
     return loss_aff
 
 
@@ -105,7 +105,6 @@ def test(model, device, test_loader, nb):
 
 
 def save_arguments(args):
-    ## save arguments as a string to a file
     f = open(join(args.dir_result,'args.txt'),'w')
     f.write(repr(args)+'\n')
     f.close()
@@ -177,7 +176,6 @@ def plot_and_save_loss_curve(epoch, loss_train, loss_val):
     plt.yscale('log')   
     plt.title('loss in logscale')
     plt.savefig(join(args.dir_result, 'loss.png'))
-    #plt.show()
 
 
 def init_env():
@@ -188,23 +186,17 @@ def init_env():
     
     return device
     
-    
-
+     
 def main(args):
-                 
-    # args.dir_data = 'd:/Lab/Dataset/nuscenes'  
-    # # args.resume = True
-    # args.epochs = 5
-    # args.nChannels = 32
-    # args.nLevels = 4
-
-    
     args.outChannels = ( args.left_right * 2 + 1 ) * (args.top + args.bottom + 1)
     print('output channels: ', args.outChannels)
     
-    
+    if args.dir_data == None:
+        this_dir = os.path.dirname(__file__)
+        args.dir_data = join(this_dir, '..', 'data')
+        
     if not args.dir_result:
-        args.dir_result = join(args.dir_data, 'train_result', 'aff%d_%d_%d' % (args.left_right, args.top, args.bottom))              
+        args.dir_result = join(args.dir_data, 'train_result', 'rca%d_%d_%d' % (args.left_right, args.top, args.bottom))              
     mkdir(args.dir_result)  
     
     args.dir_summary = join(args.dir_result, 'summary') 
@@ -218,9 +210,6 @@ def main(args):
     
     writer = SummaryWriter(args.dir_summary, flush_secs=30)
             
-    # Each block consists of 2 batch normalizations, 2 relu and 2 convolutions
-    # nPred: number of ouput resolution levels; when nPred=1, produce output at resolution 0.
-    # n_Levels: number of resolution hierarchies
     model = PyramidCNN(args.nLevels, args.nPred, args.nPerBlock, 
                         args.nChannels, args.inChannels, args.outChannels, 
                         args.doRes, args.doBN, doELU=False, 
@@ -241,8 +230,6 @@ def main(args):
     val_loader = init_data_loader(args, 'val')
     
     
-    # nb = neighbor_connection(*(2,2,8,2))
-    # nb = neighbor_connection(*(1,1,30,10))
     nb = neighbor_connection(*(args.left_right, args.left_right, args.top, args.bottom))
     
   
@@ -277,11 +264,11 @@ def main(args):
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='training parameters')    
-    parser.add_argument('--dir_data', type=str, default='/home/longyunf/Dataset/nuscenes', help='prepared data directory')
+    parser.add_argument('--dir_data', type=str)
     parser.add_argument('--dir_result', type=str, help='directory for training results')
     
     parser.add_argument('--seed', type=int, default=1)
-    parser.add_argument('--epochs', type=int, default=5)
+    parser.add_argument('--epochs', type=int, default=40)
     parser.add_argument('--resume', action='store_true', default=False, help='resume training from checkpoint')
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--test_batch_size', type=int, default=1)
@@ -296,15 +283,14 @@ if __name__ == '__main__':
     parser.add_argument('--nPerBlock', type=int, default=2)
     parser.add_argument('--nChannels', type=int, default=80)   
     parser.add_argument('--inChannels', type=int, default=10)
-    # parser.add_argument('--outChannels', type=int, default=123, help='number of output channel of network; automatically set to 1 if pred_task is foreground_seg')
     parser.add_argument('--doRes', type=bool, default=True)
     parser.add_argument('--doBN', type=bool, default=True)        
     parser.add_argument('--do_test', type=bool, default=True, help='compute loss for testing set')
     
     # neighborhood
-    parser.add_argument('--left_right', type=int, default=1)
-    parser.add_argument('--top', type=int, default=4)
-    parser.add_argument('--bottom', type=int, default=2)
+    parser.add_argument('--left_right', type=int, default=2)
+    parser.add_argument('--top', type=int, default=30)
+    parser.add_argument('--bottom', type=int, default=5)
         
     args = parser.parse_args()
     main(args)
