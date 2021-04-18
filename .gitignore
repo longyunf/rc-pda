@@ -1,2 +1,4 @@
 data/*
 external/*
+lib/__pycache__
+scripts/__pycache__
