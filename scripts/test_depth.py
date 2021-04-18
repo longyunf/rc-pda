@@ -76,13 +76,6 @@ def prd_one_sample(model, test_loader, device, idx, args):
     plt.title('Depth')
     plt.colorbar()
     plt.show()
-    
-    plt.figure()
-    plt.imshow(prd, cmap='jet')
-    plt.title('Final depth')
-    plt.colorbar()
-    plt.axis('off')
-    plt.show()
         
     plt.figure()
     plt.imshow(d_error, cmap='jet')
