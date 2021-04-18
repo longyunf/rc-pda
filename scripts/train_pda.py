@@ -190,7 +190,7 @@ def main(args):
         args.dir_data = join(this_dir, '..', 'data')
         
     if not args.dir_result:
-        args.dir_result = join(args.dir_data, 'train_result', 'rca%d_%d_%d' % (args.left_right, args.top, args.bottom))              
+        args.dir_result = join(args.dir_data, 'train_result', 'pda_%d_%d_%d' % (args.left_right, args.top, args.bottom))              
     mkdir(args.dir_result)  
     
     args.dir_summary = join(args.dir_result, 'summary') 

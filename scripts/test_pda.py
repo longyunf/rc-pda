@@ -1,28 +1,29 @@
-import torch
-import torch.backends.cudnn as cudnn
+
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import os
 from os.path import join
 import sys
-from pyramidNet import PyramidCNN
 from tqdm import tqdm
 from sklearn.metrics import average_precision_score
 import copy
 
-from data_loader_aff import init_data_loader
-from rca_utils import depth_to_connect, neighbor_connection, otherHalf, cal_nb_depth
-from train_aff import BCE_loss
+import torch
+import torch.backends.cudnn as cudnn
+
+import _init_paths
+from data_loader_pda import init_data_loader
+from pda_utils import depth_to_connect, neighbor_connection, otherHalf, cal_nb_depth
+from train_pda import BCE_loss
+from pyramidNet import PyramidCNN
 
 
 
 def load_weights(args, model):
-    f_checkpoint = join(args.dir_result, 'checkpoint.tar')
-    # f_checkpoint = join(args.dir_result, 'checkpoint_35.tar')        
+    f_checkpoint = join(args.dir_result, 'checkpoint.tar')        
     if os.path.isfile(f_checkpoint):
         print('load best model')        
-        # model.load_state_dict(torch.load(f_checkpoint)['state_dict'])
         model.load_state_dict(torch.load(f_checkpoint)['state_dict_best'])
     else:
         sys.exit('No model found')
@@ -84,12 +85,6 @@ def cal_enhanced_depth(prd_aff, d_radar, nb, thres_aff=0.5):
        
     d_est = np.sum(wt * dr, axis=0) / wt_sum
     d_est[msk_blank] = 0
-    
-    # idx_max = np.argmax(wt, axis=0)
-    # d_est = np.zeros((h,w))
-    # for i in range(h):
-    #     for j in range(w):
-    #         d_est[i,j] = dr[idx_max[i,j], i, j]
        
     return d_est
     
@@ -163,20 +158,16 @@ def cal_enhanced_depth_with_max_aff(prd_aff, d_radar, nb, device, thres_aff=0.5)
         
 def prd_one_sample(model, nb, test_loader, device, idx = 1, thres_aff = 0.9):
         
-    # get output
     with torch.no_grad():
         for ct, sample in enumerate(test_loader):
             if ct == idx:
-                data_in, d_lidar, d_radar = sample['data_in'].to(device), sample['d_lidar'].to(device), sample['d_radar'].to(device)               
-                # connected = depth_to_connect(d_radar, d_lidar, nb, device)                
+                data_in, d_lidar, d_radar = sample['data_in'].to(device), sample['d_lidar'].to(device), sample['d_radar'].to(device)                              
                 prd = torch.sigmoid( model(data_in)[0] ) 
                 
                 prd_tensor = prd
                 d_radar_tensor = d_radar
                 
                 im = data_in[0][0:3].permute(1,2,0).to('cpu').numpy()
-                # prd_mean_aff = torch.mean(prd[0], dim=0).to('cpu').numpy()
-                # gt_mean_aff = torch.mean(connected[0], dim=0).to('cpu').numpy()
                 d_lidar = d_lidar[0][0].to('cpu').numpy()
                 d_radar = d_radar[0][0].to('cpu').numpy()
                 
@@ -243,9 +234,9 @@ def cal_precision_recall(prd, connected, thres_score = 0.5):
     msk_prd = prd > thres_score
     msk_connected = connected == 1
     
-    tp = np.sum(msk_prd * msk_connected)       # true predicted positive
-    det_p = np.sum(msk_prd)                # predicted positive
-    all_p = np.sum(msk_connected)          # all positive
+    tp = np.sum(msk_prd * msk_connected)       
+    det_p = np.sum(msk_prd)               
+    all_p = np.sum(msk_connected)         
     
     return tp, det_p, all_p
     
@@ -284,19 +275,19 @@ def evaluate(model, nb, test_loader, device):
     print('\n precision: %.2f; recall: %.2f' % (precision, recall))  
     
     
-  
     
 def main(args):
     
-    args.left_right, args.top, args.bottom = 3, 20, 5
-      
+    if args.dir_data == None:
+        this_dir = os.path.dirname(__file__)
+        args.dir_data = join(this_dir, '..', 'data')
+         
     if not args.dir_result:
-        args.dir_result = join(args.dir_data, 'train_result', 'aff_%d_%d_%d' % (args.left_right, args.top, args.bottom))
-    args.path_data_file = join(args.dir_data, 'prepared_data_dense.h5') 
+        args.dir_result = join(args.dir_data, 'train_result', 'pda_%d_%d_%d' % (args.left_right, args.top, args.bottom))
+    args.path_data_file = join(args.dir_data, 'prepared_data.h5') 
     
     args.outChannels = ( args.left_right * 2 + 1 ) * (args.top + args.bottom + 1)
-    
-                
+                  
     device = init_env()
         
     test_loader = init_data_loader(args, 'test')
@@ -324,19 +315,17 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='training parameters')    
-    parser.add_argument('--dir_data', type=str, default='/home/longyunf/media/nuscenes', help='prepared data directory')
-    parser.add_argument('--dir_result', type=str, help='directory for training results')
+    parser.add_argument('--dir_data', type=str)
+    parser.add_argument('--dir_result', type=str)
 
     parser.add_argument('--test_batch_size', type=int, default=1)
     parser.add_argument('--num_workers', type=int, default=0)
-    
-    
+        
     parser.add_argument('--nLevels', type=int, default=5)
     parser.add_argument('--nPred', type=int, default=1)
     parser.add_argument('--nPerBlock', type=int, default=2)
     parser.add_argument('--nChannels', type=int, default=80)   
     parser.add_argument('--inChannels', type=int, default=10)
-    # parser.add_argument('--outChannels', type=int, default=123, help='number of output channel of network; automatically set to 1 if pred_task is foreground_seg')
     parser.add_argument('--doRes', type=bool, default=True)
     parser.add_argument('--doBN', type=bool, default=True) 
     
