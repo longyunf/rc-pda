@@ -10,7 +10,7 @@ import torch.backends.cudnn as cudnn
 import matplotlib.pyplot as plt
 import numpy as np
 
-from tqdm import tqdm
+import _init_paths
 from pyramidNet import PyramidCNN
 from data_loader_pda import init_data_loader
 from pda_utils import neighbor_connection
