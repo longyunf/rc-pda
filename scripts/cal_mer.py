@@ -90,7 +90,7 @@ def main(args):
     nb = neighbor_connection(*(args.left_right, args.left_right, args.top, args.bottom))
     
     
-    path_h5_file = join(args.dir_data, 'enhanced_radar_multi_%d_%d_%d_%.1f.h5' % (args.left_right, args.top, args.bottom, thres_affs[0]) )
+    path_h5_file = join(args.dir_data, 'mer_%d_%d_%d_%.1f.h5' % (args.left_right, args.top, args.bottom, thres_affs[0]) )
     hf = h5py.File(path_h5_file, 'w')
         
     train_loader = init_data_loader(args, 'train')
