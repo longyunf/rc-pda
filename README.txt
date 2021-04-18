@@ -10,8 +10,8 @@
 9) gen_h5_file3.py                 # create .h5 dataset file
 
 2. Estimate radar camera assoication
-train_rca.py         # train
-test_rca.py          # test
+train_pda.py         # train
+test_pda.py          # test
 
 3. Generate enhanced radar depth (RC-PDA)
 expand_multi_radar.py

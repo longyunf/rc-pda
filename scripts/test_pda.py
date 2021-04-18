@@ -12,13 +12,8 @@ from sklearn.metrics import average_precision_score
 import copy
 
 from data_loader_aff import init_data_loader
-from aff_utils import depth_to_connect, neighbor_connection, otherHalf, cal_nb_depth
+from rca_utils import depth_to_connect, neighbor_connection, otherHalf, cal_nb_depth
 from train_aff import BCE_loss
-
-
-# # for debugging on hpcc development nodes
-# os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'
-# os.environ['CUDA_VISIBLE_DEVICES']='3'
 
 
 

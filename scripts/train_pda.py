@@ -14,9 +14,9 @@ import torch.backends.cudnn as cudnn
 from torch.utils.tensorboard import SummaryWriter
 
 import _init_paths
-from data_loader_rca import init_data_loader
+from data_loader_pda import init_data_loader
 from pyramidNet import PyramidCNN
-from rca_utils import depth_to_connect, neighbor_connection
+from pda_utils import depth_to_connect, neighbor_connection
 
 
 
@@ -262,7 +262,7 @@ if __name__ == '__main__':
     parser.add_argument('--dir_result', type=str)
     
     parser.add_argument('--seed', type=int, default=1)
-    parser.add_argument('--epochs', type=int, default=40)
+    parser.add_argument('--epochs', type=int, default=15)
     parser.add_argument('--resume', action='store_true', default=False, help='resume training from checkpoint')
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--test_batch_size', type=int, default=1)
