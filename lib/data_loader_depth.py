@@ -73,9 +73,9 @@ class Dataset(data.Dataset):
 
 if __name__=='__main__':
     
-    if args.dir_data == None:
-        this_dir = os.path.dirname(__file__)
-        dir_data = join(this_dir, '..', 'data')
+
+    this_dir = os.path.dirname(__file__)
+    dir_data = join(this_dir, '..', 'data')
        
     path_data_file = join(dir_data, 'prepared_data.h5')
     path_radar_file = join(dir_data, 'mer_2_30_5_0.5.h5')
