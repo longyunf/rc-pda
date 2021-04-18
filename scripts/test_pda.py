@@ -52,71 +52,6 @@ def plt_depth_on_im(depth_map, im, title = '',  ptsSize = 1):
 
 
 
-def cal_enhanced_depth(prd_aff, d_radar, nb, thres_aff=0.5):
-    '''
-        prd_aff: n_nb x h x w
-        d_radar: h x w
-
-    '''
-    thres_score = thres_aff
-    prd = prd_aff
-    
-    xy_list = nb.xy        
-    wt = np.zeros_like(prd)
-    dr = np.zeros_like(prd)
-    n, h, w = wt.shape
-    for i in range(h):
-        for j in range(w):
-            if d_radar[i,j] > 0:
-                for idx, (ox, oy) in enumerate(xy_list):
-                    if prd[idx, i, j] > thres_score:
-                        xn = j + ox
-                        yn = i + oy
-                        if xn>= 0 and xn<w and yn>=0 and yn<h:
-                            ct = 0
-                            while wt[ct,yn,xn] != 0:
-                                ct += 1
-                            wt[ct,yn,xn] = prd[idx,i,j]
-                            dr[ct,yn,xn] = d_radar[i,j]
-                            
-    wt_sum = np.sum(wt, axis=0)
-    msk_blank = wt_sum == 0
-    wt_sum[msk_blank] = -1
-       
-    d_est = np.sum(wt * dr, axis=0) / wt_sum
-    d_est[msk_blank] = 0
-       
-    return d_est
-    
-
-def cal_enhanced_depth_torch(prd_aff, d_radar, nb, device, thres_aff=0.5):
-    '''
-    use torch for fast implementation
-    input:
-        prd_aff: tensor: (n_batch, n_nb, h, w) 
-        d_radar: tensor: (n_batch, 1, h, w)
-    output:
-        d_est: numpy (h,w)
-    
-    '''    
-    nb_aff = otherHalf(prd_aff, nb.xy)
-    nb2 = copy.deepcopy(nb)
-    nb2.reflect()
-
-    nb_depth = cal_nb_depth(d_radar, nb2, device)
-    
-    nb_aff[nb_aff <= thres_aff] = 0
-    nb_aff[nb_depth == 0] = 0
-    
-    wt_sum = nb_aff.sum(dim=1)
-    wt_sum[wt_sum == 0] = -1
-    
-    d_est = torch.sum(nb_aff * nb_depth, dim = 1) / wt_sum   
-    d_est = d_est.squeeze().cpu().numpy()
-    
-    return d_est
-
-
 def cal_enhanced_depth_with_max_aff(prd_aff, d_radar, nb, device, thres_aff=0.5):
     '''
     input:
@@ -151,82 +86,6 @@ def cal_enhanced_depth_with_max_aff(prd_aff, d_radar, nb, device, thres_aff=0.5)
     
     return d_est, aff_max
 
-
-
-
-        
-        
-def prd_one_sample(model, nb, test_loader, device, idx = 1, thres_aff = 0.9):
-        
-    with torch.no_grad():
-        for ct, sample in enumerate(test_loader):
-            if ct == idx:
-                data_in, d_lidar, d_radar = sample['data_in'].to(device), sample['d_lidar'].to(device), sample['d_radar'].to(device)                              
-                prd = torch.sigmoid( model(data_in)[0] ) 
-                
-                prd_tensor = prd
-                d_radar_tensor = d_radar
-                
-                im = data_in[0][0:3].permute(1,2,0).to('cpu').numpy()
-                d_lidar = d_lidar[0][0].to('cpu').numpy()
-                d_radar = d_radar[0][0].to('cpu').numpy()
-                
-                prd = prd[0].cpu().numpy()
-                
-                break
-     
-   
-    d_est = cal_enhanced_depth_torch(prd_tensor, d_radar_tensor, nb, device, thres_aff)
-    
-    d_est2, wt2 = cal_enhanced_depth_with_max_aff(prd_tensor, d_radar_tensor, nb, device, thres_aff = 0.6)
-    
-    
-    
-    
-    
-    msk = np.logical_and( d_lidar > 0, d_est > 0)
-    
-    error = np.abs(d_lidar - d_est) * msk
-    
-    mae = np.mean(error[msk])
-    
-    print('mae: ', mae)
-          
-    # visualize output    
-    plt.close('all')   
-    
-    plt.figure()
-    plt.imshow(im)
-    plt.show()
-    
-    plt.figure()
-    plt.imshow(error, cmap = 'jet')
-    plt.colorbar()
-    plt.show()
-    
-    depth = np.concatenate([d_lidar, d_est, d_radar], axis=0)
-    plt.figure()
-    plt.imshow(depth, cmap = 'jet')
-    plt.colorbar()
-    plt.show()
-    
-    
-    
-    d_radar[0,0]=70
-    d_est[0,0]=70
-    
-    plt_depth_on_im(d_lidar, im, title='lidar depth', ptsSize = 1)
-    plt_depth_on_im(d_radar, im, title='Raw radar depth', ptsSize = 1)    
-    plt_depth_on_im(d_est, im, title='Enhanced depth', ptsSize = 1)
-    
-    
-    plt_depth_on_im(d_est2, im, title='Enhanced depth2', ptsSize = 1)
-    plt_depth_on_im(wt2, im, title='confidence', ptsSize = 1)
-    
-    plt_depth_on_im(error, im, title='error', ptsSize = 1)
-    
-
-    
     
 def cal_precision_recall(prd, connected, thres_score = 0.5):
     
@@ -248,7 +107,6 @@ def evaluate(model, nb, test_loader, device):
       
     thres_score = 0.5
     
-    # get output
     with torch.no_grad():
         for sample in tqdm(test_loader, 'Evaluation'):
             data_in, d_lidar, d_radar = sample['data_in'].to(device), sample['d_lidar'].to(device), sample['d_radar'].to(device)               
@@ -303,12 +161,6 @@ def main(args):
      
     nb = neighbor_connection(*(args.left_right, args.left_right, args.top, args.bottom))
         
-    ## prdict one frame
-    idx = 50
-    thres_aff = 0.95
-    prd_one_sample(model, nb, test_loader, device, idx, thres_aff)
-        
-    # evaluation
     evaluate(model, nb, test_loader, device)
       
             
