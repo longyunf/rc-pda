@@ -38,8 +38,7 @@ class Dataset(data.Dataset):
         self.im_list = data['im'][...]        
         self.gt = data['gt'][...,[0]].astype('f4')
         self.indices = data['indices']
-        self.radar_raw_list = data['radar_short'][...,0].astype('f4')       
-        # self.radar_list = data_radar['radar'][...].astype('f4')
+        self.radar_raw_list = data['radar'][...,0].astype('f4')       
         self.radar_list = data_radar['radar'][...]
         if mode == 'test':
             self.msk_lh_list = data['msk_lh'][...]
@@ -51,27 +50,20 @@ class Dataset(data.Dataset):
     def __getitem__(self, idx):
         'Generate one sample of data'
         
-        im1 = self.im_list[idx].astype('float32').transpose((2,0,1))       # (3,h,w) 
+        im1 = self.im_list[idx].astype('float32').transpose((2,0,1))      
         d_radar_raw = self.radar_raw_list[idx].astype('float32')[None,...]
         d_radar_multi = self.radar_list[idx].astype('float32')/100             # (5,h,w) # centimeter to meter
      
-        d_lidar = self.gt[idx].astype('float32').transpose((2,0,1))        # (1,h,w)
-                        
-        # d_radar_raw[d_radar_raw>70] = 0               
-        # d_radar_multi[d_radar_multi>70] = 0                         
-        # # limit gt depth to [0,70]
-        # d_lidar[d_lidar>70] = 0 
+        d_lidar = self.gt[idx].astype('float32').transpose((2,0,1))            # (1,h,w)
         
         d_radar_raw[d_radar_raw>50] = 0               
         d_radar_multi[d_radar_multi>50] = 0                         
-        # limit gt depth to [0,70]
         d_lidar[d_lidar>50] = 0 
         
-        data_in = np.concatenate((im1, d_radar_raw, d_radar_multi), axis=0)    # (9,h,w)
+        data_in = np.concatenate((im1, d_radar_raw, d_radar_multi), axis=0)
         
- 
         if self.mode == 'test':
-            msk_lh = self.msk_lh_list[idx].astype('float32')[None, ...]          # (1,h,w)
+            msk_lh = self.msk_lh_list[idx].astype('float32')[None, ...]
             sample = {'data_in': data_in, 'd_lidar': d_lidar, 'msk_lh': msk_lh, 'sample_idx': self.indices[idx]}
         else:
             sample = {'data_in': data_in, 'd_lidar': d_lidar}
@@ -81,10 +73,12 @@ class Dataset(data.Dataset):
 
 if __name__=='__main__':
     
-    
-    dir_data= 'd:/Lab/Dataset/nuscenes'   
-    path_data_file = join(dir_data, 'prepared_data_dense.h5')
-    path_radar_file = join(dir_data, 'enhanced_radar_multi_1_4_2_0.6.h5')
+    if args.dir_data == None:
+        this_dir = os.path.dirname(__file__)
+        dir_data = join(this_dir, '..', 'data')
+       
+    path_data_file = join(dir_data, 'prepared_data.h5')
+    path_radar_file = join(dir_data, 'mer_2_30_5_0.5.h5')
     
     args_train_set = {'path_data_file': path_data_file,
                       'path_radar_file': path_radar_file,

@@ -1,24 +1,20 @@
-'''
-input: im1, raw_radar, multi-channel filtered radar depth (affnity > 0.6, 0.7, 0.8, 0.9, 0.95)
-output: depth
-label: d_lidar
-'''
+
+import argparse
+import os
+from os.path import join
+from timeit import default_timer as timer
+import copy
 
 import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
 import matplotlib.pyplot as plt
 import numpy as np
-import argparse
-import os
-from os.path import join
-from timeit import default_timer as timer
-import copy
 from tqdm import tqdm
 
-from data_loader_rd_ft4 import init_data_loader
+import _init_paths
+from data_loader_depth import init_data_loader
 from pyramidNet import PyramidCNN
-
 
 
 def Loss(prd, gt):
@@ -28,7 +24,6 @@ def Loss(prd, gt):
     loss = criterion(prd[msk_d], gt[msk_d])
       
     return loss
-
 
 
 def train(log_interval, model, device, train_loader, optimizer, epoch):
@@ -75,7 +70,6 @@ def test(model, device, test_loader):
 
 
 def save_arguments(args):
-    ## save arguments as a string to a file
     f = open(join(args.dir_result,'args.txt'),'w')
     f.write(repr(args)+'\n')
     f.close()
@@ -147,7 +141,6 @@ def plot_and_save_loss_curve(epoch, loss_train, loss_val):
     plt.yscale('log')   
     plt.title('loss in logscale')
     plt.savefig(join(args.dir_result, 'loss.png'))
-    #plt.show()
 
 
 def init_env():
@@ -159,44 +152,39 @@ def init_env():
     return device
     
     
-
 def main(args):
-                 
+                
+    if args.dir_data == None:
+        this_dir = os.path.dirname(__file__)
+        args.dir_data = join(this_dir, '..', 'data')
 
     if not args.dir_result: 
-        args.dir_result = join(args.dir_data, 'train_result', 'rd_ft_multi_x_x_x_x')              
+        args.dir_result = join(args.dir_data, 'train_result', 'depth_completion')              
     mkdir(args.dir_result)       
       
-    args.path_data_file = join(args.dir_data, 'prepared_data_dense.h5') 
-    args.path_radar_file = join(args.dir_data, 'enhanced_radar_multi_1_8_1_0.6.h5') # inChannels=9 
+    args.path_data_file = join(args.dir_data, 'prepared_data.h5') 
+    args.path_radar_file = join(args.dir_data, 'mer_2_30_5_0.5.h5') # inChannels=9 
 
     save_arguments(args)         
     
     device = init_env()
             
-    # Each block consists of 2 batch normalizations, 2 relu and 2 convolutions
-    # nPred: number of ouput resolution levels; when nPred=1, produce output at resolution 0.
-    # n_Levels: number of resolution hierarchies
     model = PyramidCNN(args.nLevels, args.nPred, args.nPerBlock, 
                         args.nChannels, args.inChannels, args.outChannels, 
                         args.doRes, args.doBN, doELU=False, 
                         predPix=False, predBoxes=False).to(device)
 
-
     optimizer = torch.optim.RMSprop(model.parameters(),
                                  	lr = args.lr, 
                                  	weight_decay = 0, 
                                  	momentum = args.momentum)
-    
-    
+        
     loss_train, loss_val, start_epoch, state_dict_best, loss_val_min = \
     init_params(args, model, optimizer)
-    
-    
+        
     train_loader = init_data_loader(args, 'train')
     val_loader = init_data_loader(args, 'val')
     
-      
   
     for epoch in range(start_epoch, args.epochs + 1):
         start = timer()
@@ -224,11 +212,11 @@ def main(args):
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='training parameters')    
-    parser.add_argument('--dir_data', type=str, default='/home/longyunf/Dataset/nuscenes', help='prepared data directory')
-    parser.add_argument('--dir_result', type=str, help='directory for training results')
+    parser.add_argument('--dir_data', type=str)
+    parser.add_argument('--dir_result', type=str)
     
     parser.add_argument('--seed', type=int, default=1)
-    parser.add_argument('--epochs', type=int, default=60)
+    parser.add_argument('--epochs', type=int, default=25)
     parser.add_argument('--resume', action='store_true', default=False, help='resume training from checkpoint')
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--test_batch_size', type=int, default=1)
@@ -241,7 +229,7 @@ if __name__ == '__main__':
     parser.add_argument('--nPred', type=int, default=1)
     parser.add_argument('--nPerBlock', type=int, default=4)
     parser.add_argument('--nChannels', type=int, default=64)   
-    parser.add_argument('--inChannels', type=int, default=9)
+    parser.add_argument('--inChannels', type=int, default=10)
     parser.add_argument('--outChannels', type=int, default=1, help='number of output channel of network; automatically set to 1 if pred_task is foreground_seg')
     parser.add_argument('--doRes', type=bool, default=True)
     parser.add_argument('--doBN', type=bool, default=True)        

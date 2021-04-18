@@ -17,6 +17,6 @@ test_pda.py          # test
 cal_mer.py
 
 4. Train depth completion by using the enhanced depth
-train_rd_ft4.py         # train
-test_rd_ft4.py          # test
+train_depth.py         # train
+test_depth.py          # test
 
