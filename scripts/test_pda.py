@@ -166,7 +166,7 @@ def main(args):
             
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='training parameters')    
+    parser = argparse.ArgumentParser()    
     parser.add_argument('--dir_data', type=str)
     parser.add_argument('--dir_result', type=str)
 

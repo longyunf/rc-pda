@@ -14,7 +14,7 @@ train_pda.py         # train
 test_pda.py          # test
 
 3. Generate enhanced radar depth (RC-PDA)
-expand_multi_radar.py
+cal_mer.py
 
 4. Train depth completion by using the enhanced depth
 train_rd_ft4.py         # train
