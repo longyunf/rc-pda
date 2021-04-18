@@ -215,7 +215,7 @@ if __name__ == '__main__':
     parser.add_argument('--dir_result', type=str)
     
     parser.add_argument('--seed', type=int, default=1)
-    parser.add_argument('--epochs', type=int, default=25)
+    parser.add_argument('--epochs', type=int, default=45)
     parser.add_argument('--resume', action='store_true', default=False, help='resume training from checkpoint')
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--test_batch_size', type=int, default=1)
