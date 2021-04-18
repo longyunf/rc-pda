@@ -1,4 +1,3 @@
-
 import argparse
 import os
 from os.path import join
@@ -236,6 +235,4 @@ if __name__ == '__main__':
     parser.add_argument('--do_test', type=bool, default=True, help='compute loss for testing set')
     args = parser.parse_args()
     main(args)
-
-
 
