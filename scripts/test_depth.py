@@ -1,23 +1,23 @@
-import torch
-import torch.backends.cudnn as cudnn
-import matplotlib.pyplot as plt
-import numpy as np
 import argparse
 import os
 from os.path import join
 import sys
-from pyramidNet import PyramidCNN
 from tqdm import tqdm
 
-from data_loader_rd_ft4 import init_data_loader
+import torch
+import torch.backends.cudnn as cudnn
+import matplotlib.pyplot as plt
+import numpy as np
 
+import _init_paths
+from pyramidNet import PyramidCNN
+from data_loader_depth import init_data_loader
 
 
 def load_weights(args, model):
     f_checkpoint = join(args.dir_result, 'checkpoint.tar')        
     if os.path.isfile(f_checkpoint):
         print('load best model')        
-        # model.load_state_dict(torch.load(f_checkpoint)['state_dict'])
         model.load_state_dict(torch.load(f_checkpoint)['state_dict_best'])
     else:
         sys.exit('No model found')
@@ -32,7 +32,6 @@ def init_env():
 
 def prd_one_sample(model, test_loader, device, idx, args):
         
-    # get output
     with torch.no_grad():
         for ct, sample in enumerate(test_loader):
             if ct == idx:
@@ -59,8 +58,7 @@ def prd_one_sample(model, test_loader, device, idx, args):
     d_error = np.abs( d_lidar - prd ) * msk_valid   
     
     depth = np.concatenate([d_lidar, prd], axis = 0)
-    
-    # visualize output    
+      
     plt.close('all')   
     
     plt.figure()
@@ -69,13 +67,13 @@ def prd_one_sample(model, test_loader, device, idx, args):
     
     plt.figure()
     plt.imshow(d_radar, cmap='jet')
-    plt.title('radar')
+    plt.title('Radar')
     plt.colorbar()
     plt.show()
    
     plt.figure()
     plt.imshow(depth, cmap='jet')
-    plt.title('depth')
+    plt.title('Depth')
     plt.colorbar()
     plt.show()
     
@@ -88,7 +86,7 @@ def prd_one_sample(model, test_loader, device, idx, args):
         
     plt.figure()
     plt.imshow(d_error, cmap='jet')
-    plt.title('error')
+    plt.title('Error')
     plt.colorbar()
     plt.show()
 
@@ -126,7 +124,6 @@ def evaluate(model, test_loader, device, d_min=1e-3, d_max=70, eval_low_height =
     model.eval()
     errors = np.zeros(10)   
     
-    # get output
     with torch.no_grad():
         for sample in tqdm(test_loader, 'Evaluation'):
             data_in, gt = sample['data_in'].to(device), sample['d_lidar']              
@@ -148,13 +145,17 @@ def evaluate(model, test_loader, device, d_min=1e-3, d_max=70, eval_low_height =
    
           
 def main(args):
-       
-    if not args.dir_result:
-        args.dir_result = join(args.dir_data, 'train_result', 'rd_ft_multi_1_8_1_0.6')
-
-    args.path_data_file = join(args.dir_data, 'prepared_data_dense.h5') 
     
-    args.path_radar_file = join(args.dir_data, 'enhanced_radar_multi_1_8_1_0.6.h5')
+    if args.dir_data == None:
+        this_dir = os.path.dirname(__file__)
+        args.dir_data = join(this_dir, '..', 'data')
+   
+    if not args.dir_result:
+        args.dir_result = join(args.dir_data, 'train_result', 'depth_completion')
+
+    args.path_data_file = join(args.dir_data, 'prepared_data.h5') 
+    
+    args.path_radar_file = join(args.dir_data, 'mer_2_30_5_0.5.h5')
                 
     device = init_env()
         
@@ -169,8 +170,6 @@ def main(args):
     load_weights(args, model)       
     model.eval()
     
-        
-    # prdict one frame
     idx = 150
     prd_one_sample(model, test_loader, device, idx, args)
         
@@ -180,13 +179,11 @@ def main(args):
     print('\n Low height')
     evaluate(model, test_loader, device, d_min=1e-3, d_max=args.d_max, eval_low_height = True)
       
-            
-
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='training parameters')    
-    parser.add_argument('--dir_data', type=str, default='/home/longyunf/media/nuscenes', help='prepared data directory')
-    parser.add_argument('--dir_result', type=str, help='directory for training results')
+    parser = argparse.ArgumentParser()       
+    parser.add_argument('--dir_data', type=str)
+    parser.add_argument('--dir_result', type=str)
 
     parser.add_argument('--test_batch_size', type=int, default=1)
     parser.add_argument('--num_workers', type=int, default=0)
@@ -203,11 +200,5 @@ if __name__ == '__main__':
     parser.add_argument('--d_max', type=float, default=50)
     args = parser.parse_args()
     
-
     main(args)
     
-   
-    
-    
-
-
