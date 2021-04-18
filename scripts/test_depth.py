@@ -192,7 +192,7 @@ if __name__ == '__main__':
     parser.add_argument('--nPred', type=int, default=1)
     parser.add_argument('--nPerBlock', type=int, default=4)
     parser.add_argument('--nChannels', type=int, default=64)   
-    parser.add_argument('--inChannels', type=int, default=9)
+    parser.add_argument('--inChannels', type=int, default=10)
     parser.add_argument('--outChannels', type=int, default=1, help='number of output channel of network; automatically set to 1 if pred_task is foreground_seg')
     parser.add_argument('--doRes', type=bool, default=True)
     parser.add_argument('--doBN', type=bool, default=True) 
