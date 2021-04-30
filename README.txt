@@ -1,9 +1,6 @@
-
-
 Directories:
-
-data/                 # this can be a soft link
-    nuscenes/         # download official nuscenes dataset
+data/                       # this can be a soft link
+    nuscenes/               # download official nuscenes dataset
         annotations/
         maps/
         samples/
@@ -11,6 +8,17 @@ data/                 # this can be a soft link
         v1.0-trainval/
 lib/
 scripts/
+external/                   # external repositories
+    panoptic-deeplab/
+    RAFT/
+
+
+Evironment:
+# Create a conda environment called pda
+conda create -n pda python=3.6
+
+# Intall packages:
+pip install -r requirements.txt
 
 
 
