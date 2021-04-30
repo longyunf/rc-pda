@@ -1,4 +1,4 @@
-Directories:
+A. Directories:
 data/                       # this can be a soft link
     nuscenes/               # download official nuscenes dataset
         annotations/
@@ -9,11 +9,11 @@ data/                       # this can be a soft link
 lib/
 scripts/
 external/                   # external repositories
-    panoptic-deeplab/
-    RAFT/
+    panoptic-deeplab/       # clone from https://github.com/bowenc0221/panoptic-deeplab
+    RAFT/                   # clone from https://github.com/princeton-vl/RAFT
 
 
-Evironment:
+B. Evironment:
 # Create a conda environment called pda
 conda create -n pda python=3.6
 
@@ -21,8 +21,7 @@ conda create -n pda python=3.6
 pip install -r requirements.txt
 
 
-
-Scripts:
+C. Scripts:
 1. Data preparation
 1) split_trainval.py          # split data
 2) prepare_flow_im.py         # extract images for flow computation
