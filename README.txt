@@ -1,3 +1,20 @@
+
+
+Directories:
+
+data/                 # this can be a soft link
+    nuscenes/         # download official nuscenes dataset
+        annotations/
+        maps/
+        samples/
+        sweeps/
+        v1.0-trainval/
+lib/
+scripts/
+
+
+
+Scripts:
 1. Data preparation
 1) split_trainval.py          # split data
 2) prepare_flow_im.py         # extract images for flow computation
