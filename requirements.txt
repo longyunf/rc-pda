@@ -1,0 +1,12 @@
+torch
+torchvision
+nuscenes-devkit
+numpy
+glob2
+scikit-learn
+matplotlib
+h5py
+pyquaternion
+argparse
+tqdm
+scikit-image
