@@ -5,7 +5,7 @@
 
 
 ## Directories
-
+```
 rc-pda/
             data/                           							  (This can be a soft link)
                     nuscenes/                 		       		 (Download official [nuScenes dataset](https://www.nuscenes.org/))
@@ -19,7 +19,7 @@ rc-pda/
             external/                   				   	        (External repositories)
                          panoptic-deeplab/       			  (Clone [Panoptic-DeepLab](https://github.com/bowenc0221/panoptic-deeplab))
                          RAFT/                   	     				(Clone [RAFT](https://github.com/princeton-vl/RAFT))
-
+```
 
 
 ## Setup
