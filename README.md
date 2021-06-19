@@ -1,6 +1,6 @@
 # Radar-Camera Pixel Depth Association for Depth Completion
 
-![example figure](images/example.png)
+![example figure](./images/example.png)
 **Example of radar-camera depth completion: (a) raw radar depth, (b) enhanced radar depth, (c) final predicted depth.**
 
 
