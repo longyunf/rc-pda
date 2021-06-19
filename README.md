@@ -87,12 +87,14 @@ python test_depth.py         # test
 ```
 
 ## Citation
+```plain
 @inproceedings{long2021radar,
   title={Radar-Camera Pixel Depth Association for Depth Completion},
   author={Long, Yunfei and Morris, Daniel and Liu, Xiaoming and Castro, Marcos and Chakravarty, Punarjay and Narayanan, Praveen},
   booktitle={IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
   year={2021}
 }
+```
 
 
 
