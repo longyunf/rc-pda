@@ -5,20 +5,20 @@
 
 
 ## Directories
-```
+```plain
 rc-pda/
-            data/                           							  (This can be a soft link)
-                    nuscenes/                 		       		 (Download official [nuScenes dataset](https://www.nuscenes.org/))
-                            annotations/
-                            maps/
-                            samples/
-                            sweeps/
-                            v1.0-trainval/
-            lib/
-            scripts/
-            external/                   				   	        (External repositories)
-                         panoptic-deeplab/       			  (Clone [Panoptic-DeepLab](https://github.com/bowenc0221/panoptic-deeplab))
-                         RAFT/                   	     				(Clone [RAFT](https://github.com/princeton-vl/RAFT))
+    data/                           							 
+        nuscenes/                 		    
+                annotations/
+                maps/
+                samples/
+                sweeps/
+                v1.0-trainval/
+    lib/
+    scripts/
+    external/                   				   	        
+        panoptic-deeplab/       
+        RAFT/                   	     				
 ```
 
 
@@ -31,8 +31,8 @@ conda create -n pda python=3.6
 ```bash
 pip install -r requirements.txt
 ```
-- Create folder data/ and download nuScenes dataset
-- Create folder external/ and clone external repos
+- Download [nuScenes dataset](https://www.nuscenes.org/) into data/nuscenes/
+- Clone external repos [Panoptic-DeepLab](https://github.com/bowenc0221/panoptic-deeplab) and [RAFT](https://github.com/princeton-vl/RAFT) into external/
 
 ## Code
 **1. Data preparation**
