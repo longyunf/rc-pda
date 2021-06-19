@@ -7,18 +7,18 @@
 ## Directories
 
 rc-pda/
-    ├── data/                           							  (This can be a soft link)
-                └── nuscenes/                 		           (Download official [nuScenes dataset](https://www.nuscenes.org/))
-                             ├── annotations/
-                             ├── maps/
-                             ├── samples/
-                             ├── sweeps/
-                             └── v1.0-trainval/
-    ├── lib/
-    ├── scripts/
-    ├── external/                   				   			   (External repositories)
-                 ├── panoptic-deeplab/       		        (Clone [Panoptic-DeepLab](https://github.com/bowenc0221/panoptic-deeplab))
-                 └── RAFT/                   			         	  (Clone [RAFT](https://github.com/princeton-vl/RAFT))
+    +-- data/                           							  (This can be a soft link)
+            +-- nuscenes/                 		       		(Download official [nuScenes dataset](https://www.nuscenes.org/))
+                     +-- annotations/
+                     +-- maps/
+                     +-- samples/
+                     +-- sweeps/
+                     +-- v1.0-trainval/
+            +-- lib/
+            +-- scripts/
+            +-- external/                   				   	    (External repositories)
+                     +-- panoptic-deeplab/       			  (Clone [Panoptic-DeepLab](https://github.com/bowenc0221/panoptic-deeplab))
+                     +-- RAFT/                   	     				(Clone [RAFT](https://github.com/princeton-vl/RAFT))
 
 
 
