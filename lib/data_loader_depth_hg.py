@@ -1,12 +1,10 @@
 import torch
 from torch.utils import data
 import numpy as np
-import os
 from os.path import join
 import matplotlib.pyplot as plt
 import h5py
-
-      
+   
 def init_data_loader(args, mode):
     
     if mode == 'train':
@@ -38,9 +36,9 @@ class Dataset(data.Dataset):
         
         self.im_list = data['im'][...]        
         self.gt = data['gt'][...,[0]].astype('f4')
-        self.indices = data['indices']
+        self.indices = data['indices']        
         self.radar_raw_list = data['radar'][...,0].astype('f4')       
-        self.radar_list = data_radar['radar'][...]
+        self.radar_list = data_radar['radar'][...]        
         if mode == 'test':
             self.msk_lh_list = data['msk_lh'][...]
                            
@@ -51,23 +49,22 @@ class Dataset(data.Dataset):
     def __getitem__(self, idx):
         'Generate one sample of data'
         
-        im1 = self.im_list[idx].astype('float32').transpose((2,0,1))      
+        im = self.im_list[idx].astype('float32').transpose((2,0,1))
         d_radar_raw = self.radar_raw_list[idx].astype('float32')[None,...]
-        d_radar_multi = self.radar_list[idx].astype('float32')/100             # centimeter to meter
+        d_radar_multi = self.radar_list[idx].astype('float32')/100         # centimeter to meter
      
-        d_lidar = self.gt[idx].astype('float32').transpose((2,0,1))            # (1,h,w)
+        d_lidar = self.gt[idx].astype('float32').transpose((2,0,1))        # (1,h,w)
         
         d_radar_raw[d_radar_raw>50] = 0               
         d_radar_multi[d_radar_multi>50] = 0                         
         d_lidar[d_lidar>50] = 0 
         
-        data_in = np.concatenate((im1, d_radar_raw, d_radar_multi), axis=0)
+        d_radar = np.concatenate((d_radar_raw, d_radar_multi), axis=0)
         
         if self.mode == 'test':
             msk_lh = self.msk_lh_list[idx].astype('float32')[None, ...]
-            sample = {'data_in': data_in, 'd_lidar': d_lidar, 'msk_lh': msk_lh, 'sample_idx': self.indices[idx]}
+            sample = {'im': im, 'd_radar': d_radar, 'd_lidar': d_lidar, 'msk_lh': msk_lh, 'sample_idx': self.indices[idx]}
         else:
-            sample = {'data_in': data_in, 'd_lidar': d_lidar}
+            sample = {'im': im, 'd_radar': d_radar, 'd_lidar': d_lidar}
                            
         return sample
-

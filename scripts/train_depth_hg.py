@@ -1,19 +1,18 @@
-import argparse
-import os
-from os.path import join
-from timeit import default_timer as timer
-import copy
-
 import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
 import matplotlib.pyplot as plt
 import numpy as np
+import argparse
+import os
+from os.path import join
+from timeit import default_timer as timer
+import copy
 from tqdm import tqdm
 
 import _init_paths
-from data_loader_depth import init_data_loader
-from pyramidNet import PyramidCNN
+from data_loader_depth_hg import init_data_loader
+from hourglassNet import network
 
 
 def Loss(prd, gt):
@@ -30,19 +29,30 @@ def train(log_interval, model, device, train_loader, optimizer, epoch):
     ave_loss=0
     
     for batch_idx, sample in enumerate(train_loader):
-        data_in, d_lidar = sample['data_in'].to(device), sample['d_lidar'].to(device)
+        im, d_radar, d_lidar = sample['im'].to(device), sample['d_radar'].to(device), sample['d_lidar'].to(device)
         
         optimizer.zero_grad() 
+
+        outputs = model(d_radar, im)
         
-        prd = model(data_in)[0]                        
-        loss = Loss(prd, d_lidar)        
+        loss11 = Loss(outputs[0], d_lidar)
+        loss12 = Loss(outputs[1], d_lidar)
+        loss14 = Loss(outputs[2], d_lidar)
+                
+        if epoch < 6:
+            loss = loss14 + loss12 + loss11
+        elif epoch < 11:
+            loss = 0.1 * loss14 + 0.1 * loss12 + loss11
+        else:
+            loss = loss11
+        
         ave_loss += loss.item()
 
         loss.backward()
         optimizer.step()
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data_in), len(train_loader.dataset),
+                epoch, batch_idx * len(im), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
     ave_loss/=len(train_loader)
@@ -55,9 +65,9 @@ def test(model, device, test_loader):
     test_loss = 0
     with torch.no_grad():  
         for sample in tqdm(test_loader, 'Validation'): 
-            data_in, d_lidar = sample['data_in'].to(device), sample['d_lidar'].to(device)
+            im, d_radar, d_lidar = sample['im'].to(device), sample['d_radar'].to(device), sample['d_lidar'].to(device)            
+            prd = model(d_radar, im)[0]  
             
-            prd = model(data_in)[0]            
             loss = Loss(prd, d_lidar)              
             test_loss += loss.item()
     
@@ -151,39 +161,41 @@ def init_env():
     return device
     
     
+
 def main(args):
-                
+    
     if args.dir_data == None:
         this_dir = os.path.dirname(__file__)
         args.dir_data = join(this_dir, '..', 'data')
-
+                 
     if not args.dir_result: 
-        args.dir_result = join(args.dir_data, 'train_result', 'depth_completion')              
+        args.dir_result = join(args.dir_data, 'train_result', 'depth_completion_hourglass')              
     mkdir(args.dir_result)       
       
     args.path_data_file = join(args.dir_data, 'prepared_data.h5') 
     args.path_radar_file = join(args.dir_data, 'mer_2_30_5_0.5.h5')
 
+
     save_arguments(args)         
     
     device = init_env()
             
-    model = PyramidCNN(args.nLevels, args.nPred, args.nPerBlock, 
-                        args.nChannels, args.inChannels, args.outChannels, 
-                        args.doRes, args.doBN, doELU=False, 
-                        predPix=False, predBoxes=False).to(device)
+    model = network(rd_layers = 7).to(device)
 
     optimizer = torch.optim.RMSprop(model.parameters(),
                                  	lr = args.lr, 
-                                 	weight_decay = 0, 
+                                 	weight_decay = 0.0002, 
                                  	momentum = args.momentum)
-        
+    
+    
     loss_train, loss_val, start_epoch, state_dict_best, loss_val_min = \
     init_params(args, model, optimizer)
-        
+    
+    
     train_loader = init_data_loader(args, 'train')
     val_loader = init_data_loader(args, 'val')
     
+      
   
     for epoch in range(start_epoch, args.epochs + 1):
         start = timer()
@@ -210,7 +222,7 @@ def main(args):
     
     
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='training parameters')    
+    parser = argparse.ArgumentParser()    
     parser.add_argument('--dir_data', type=str)
     parser.add_argument('--dir_result', type=str)
     
@@ -223,15 +235,7 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, default=5e-5, help='Learning rate')
     parser.add_argument('--momentum', type=float, default=0.9)    
     parser.add_argument('--num_workers', type=int, default=0)    
-    
-    parser.add_argument('--nLevels', type=int, default=5)
-    parser.add_argument('--nPred', type=int, default=1)
-    parser.add_argument('--nPerBlock', type=int, default=4)
-    parser.add_argument('--nChannels', type=int, default=64)   
-    parser.add_argument('--inChannels', type=int, default=10)
-    parser.add_argument('--outChannels', type=int, default=1, help='number of output channel of network; automatically set to 1 if pred_task is foreground_seg')
-    parser.add_argument('--doRes', type=bool, default=True)
-    parser.add_argument('--doBN', type=bool, default=True)        
+       
     parser.add_argument('--do_test', type=bool, default=True, help='compute loss for testing set')
     args = parser.parse_args()
     main(args)

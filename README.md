@@ -31,7 +31,7 @@ conda create -n pda python=3.6
 ```bash
 pip install -r requirements.txt
 ```
-- Download [nuScenes dataset](https://www.nuscenes.org/) into data/nuscenes/
+- Download [nuScenes dataset](https://www.nuscenes.org/) (Full dataset (v1.0)) into data/nuscenes/
 - Clone external repos [Panoptic-DeepLab](https://github.com/bowenc0221/panoptic-deeplab) and [RAFT](https://github.com/princeton-vl/RAFT) into external/
 
 ## Code
@@ -80,11 +80,20 @@ python cal_mer.py
 ```
 
 **4. Train depth completion by using the enhanced depth**
+- Depth completion scheme 1 ([Using depths and RGB as input channels](https://arxiv.org/pdf/1709.07492.pdf))
 
 ```bash
-python train_depth.py        # train
-python test_depth.py         # test
+python train_depth.py        	# train
+python test_depth.py         	# test
 ```
+- Depth completion scheme 2 ([Multi-Scale Guided Cascade Hourglass Network](https://github.com/anglixjtu/msg_chn_wacv20))
+
+```bash
+python train_depth_hg.py        # train
+python test_depth_hg.py         # test
+```
+
+
 
 ## Citation
 ```plain
