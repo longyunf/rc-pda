@@ -73,8 +73,10 @@ python gen_h5_file3.py
 python train_pda.py        # train
 python test_pda.py         # test
 ```
+Download [pre-trained weights](https://drive.google.com/drive/folders/13zBWTrfYAcDzwc0S8MCmve7C22b8iDxf?usp=sharing)
 
 **3. Generate enhanced radar depth (RC-PDA)**
+
 ```bash
 python cal_mer.py
 ```
@@ -86,13 +88,15 @@ python cal_mer.py
 python train_depth.py        	# train
 python test_depth.py         	# test
 ```
+Download [pre-trained weights](https://drive.google.com/drive/folders/1ZB_77Af6gaUIW4NJLvNY8b_LaXjRELjJ?usp=sharing)
+
 - Depth completion scheme 2 ([Multi-Scale Guided Cascade Hourglass Network](https://github.com/anglixjtu/msg_chn_wacv20))
 
 ```bash
 python train_depth_hg.py        # train
 python test_depth_hg.py         # test
 ```
-
+Download [pre-trained weights](https://drive.google.com/drive/folders/1ofoMHAuQWOP2u3yusp_Tz0jXgeFrrMk3?usp=sharing).
 
 
 ## Citation
